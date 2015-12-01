@@ -5,6 +5,8 @@ import argparse
 import sys
 import logging
 import psycopg2
+
+
 # Set the log output file, and the log level
 logging.basicConfig(filename="snippets.log", level=logging.DEBUG)
 logging.info("Starting snippets app")
@@ -40,6 +42,21 @@ def get(name):
         return "%s Cannot Be Found" % name
     return row[1]
     
+def catalog():
+    """List all the snippets"""
+    logging.info("Listing snippets")
+    command = "select keyword from snippets"
+    with connection, connection.cursor() as cursor:
+        cursor.execute(command,)
+        name = cursor.fetchall()
+    name_list = []
+    for i in name:
+        g = i[0]
+        name_list.append(g)
+    return name_list
+    
+    
+    
 def main():
     """Main function"""
     logging.info("Constructing parser")
@@ -59,6 +76,11 @@ def main():
     get_parser = subparsers.add_parser("get", help="Retrieve a snippet")
     get_parser.add_argument("name", help="The name of the snippet")
     
+    # Subparser for the catalog command
+    logging.debug("Constructing catalog command")
+    catalog_parser = subparsers.add_parser("catalog", help="Catalog all snippets")
+    
+    
     arguments = parser.parse_args(sys.argv[1:])
     # Convert parsed arguments from Namespace to dictionary
     arguments = vars(arguments)
@@ -70,6 +92,9 @@ def main():
     elif command == "get":
         snippet = get(**arguments)
         print("Retrieved snippet: {!r}".format(snippet))
+    elif command == "catalog":
+        snippet = catalog(**arguments)
+        print("Listed all snippets as: {!r}".format(snippet))
     
 if __name__ == "__main__":
     main()
